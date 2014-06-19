@@ -4,12 +4,13 @@ class ManualWithDocuments < SimpleDelegator
   def initialize(document_builder, manual, attrs)
     @manual = manual
     @documents = attrs.fetch(:documents)
+    binding.pry if @documents.first.is_a?(Enumerator)
     @document_builder = document_builder
     super(manual)
   end
 
   def documents
-    @documents.to_enum
+    @documents = @documents.to_a
   end
 
   def build_document(attributes)
@@ -33,6 +34,8 @@ class ManualWithDocuments < SimpleDelegator
   attr_reader :document_builder, :manual
 
   def add_document(document)
-    @documents << document
+    @documents = @documents.to_a
+    @documents.push(document)
+    nil
   end
 end

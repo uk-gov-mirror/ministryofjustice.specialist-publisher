@@ -7,7 +7,7 @@ class DocumentAssociationMarshaller
   def load(manual, record)
     document_repository = manual_specific_document_repository_factory.call(manual)
 
-    docs = Array(record.document_ids).map { |doc_id|
+    docs = Array(record.document_ids).lazy.map { |doc_id|
       document_repository.fetch(doc_id)
     }
 
@@ -21,7 +21,7 @@ class DocumentAssociationMarshaller
       document_repository.store(document)
     end
 
-    record.document_ids = manual.documents.map { |d| d.id }
+    record.document_ids = manual.documents.map { |d| d.id }.to_a
 
     nil
   end

@@ -37,6 +37,6 @@ private
         summary: d.summary,
         slug: d.slug,
       }
-    }
+    }.to_a
   end
 end
