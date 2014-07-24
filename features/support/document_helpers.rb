@@ -24,8 +24,14 @@ module DocumentHelpers
     click_button("Preview")
   end
 
-  def check_document_does_not_exist_with(attributes)
-    refute SpecialistDocumentEdition.exists?(conditions: attributes)
+  def check_slug_registered_with_panopticon_with_correct_organisation(slug, organisation_ids = [])
+    expect(fake_panopticon).to have_received(:create_artefact!)
+      .with(hash_including(slug: slug, organisation_ids: organisation_ids))
+  end
+
+  def check_document_does_not_exist_with(type, title)
+    send(:"go_to_#{type}_index")
+    expect(page).not_to have_css("li.document", title)
   end
 
   def check_for_unchanged_slug(title, expected_slug)
