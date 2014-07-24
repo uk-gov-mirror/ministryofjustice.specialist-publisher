@@ -85,18 +85,6 @@ module DocumentHelpers
     expect(document.details["headers"].first).to include("text" => "Header")
   end
 
-  def check_for_correctly_archived_editions(document_attrs)
-    latest_edition = SpecialistDocumentEdition.where(document_attrs).first
-    editions = SpecialistDocumentEdition.where(document_id: latest_edition.document_id)
-    previous_editions = editions.to_a - latest_edition.to_a
-
-    expect(latest_edition).to be_published
-
-    previous_editions.each do |edition|
-      expect(edition).to be_archived
-    end
-  end
-
   def check_document_is_withdrawn(slug, document_title)
     expect(fake_panopticon).to have_received(:put_artefact!)
       .with(slug, hash_including(

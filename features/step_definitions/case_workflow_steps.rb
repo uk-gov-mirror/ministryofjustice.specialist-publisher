@@ -23,7 +23,3 @@ end
 Then(/^the amended document should be published$/) do
   check_document_was_republished(@slug, @amended_document_attributes)
 end
-
-Then(/^previous editions should be archived$/) do
-  check_for_correctly_archived_editions(@amended_document_attributes)
-end
