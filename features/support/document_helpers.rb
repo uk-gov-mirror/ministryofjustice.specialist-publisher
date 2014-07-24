@@ -223,4 +223,8 @@ module DocumentHelpers
     expect(page).to have_content("#{field} cannot include invalid Govspeak, invalid HTML, any JavaScript or images hosted on sites except for")
   end
 
+  def check_document_state(type, title, expected_state)
+    go_to_show_page_for_document(type, title)
+    page.should have_content(expected_state)
+  end
 end

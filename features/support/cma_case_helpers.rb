@@ -39,6 +39,13 @@ module CmaCaseHelpers
       docs.each { |doc| services.publish(doc.id).call }
     end
 
+    if state == "withdrawn"
+      docs.each do |doc|
+        services.publish(doc.id).call
+        services.withdraw(doc.id).call
+      end
+    end
+
     docs
   end
 
