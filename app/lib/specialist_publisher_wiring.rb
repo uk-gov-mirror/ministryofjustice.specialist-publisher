@@ -189,8 +189,8 @@ SpecialistPublisherWiring = DependencyContainer.new do
 
   define_factory(:cma_case_builder) {
     CmaCaseBuilder.new(
-      get(:validatable_cma_case_factory),
-      IdGenerator,
+      factory: get(:validatable_cma_case_factory),
+      id_generator: IdGenerator,
     )
   }
 
@@ -213,8 +213,8 @@ SpecialistPublisherWiring = DependencyContainer.new do
 
   define_factory(:aaib_report_builder) {
     AaibReportBuilder.new(
-      get(:validatable_aaib_report_factory),
-      IdGenerator,
+      factory: get(:validatable_aaib_report_factory),
+      id_generator: IdGenerator,
     )
   }
 
