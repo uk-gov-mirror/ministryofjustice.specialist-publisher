@@ -21,7 +21,7 @@ gem "unicorn", "4.8.2"
 if ENV["GOVSPEAK_DEV"]
   gem "govspeak", :path => "../govspeak"
 else
-  gem "govspeak", "2.0.0"
+  gem "govspeak", github: 'alphagov/govspeak', branch: 'update-kramdown-1-4-1'
 end
 
 if ENV["CONTENT_MODELS_DEV"]
