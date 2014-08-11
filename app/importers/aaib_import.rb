@@ -75,8 +75,7 @@ module AaibImport
     def report_builder
       AaibReportBuilder.new(
         ->(*args) {
-          SlugUniquenessValidator.new(
-            repo,
+          slug_uniqueness_validator.call(
             null_validator(
               SpecialistPublisherWiring.get(:aaib_report_factory).call(*args),
             )
@@ -88,6 +87,10 @@ module AaibImport
 
     def repo
       SpecialistPublisherWiring.get(:aaib_report_repository)
+    end
+
+    def slug_uniqueness_validator
+      SpecialistPublisherWiring.get(:slug_uniqueness_validator)
     end
 
     def null_validator(thing)

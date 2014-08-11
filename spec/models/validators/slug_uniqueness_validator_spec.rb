@@ -4,7 +4,7 @@ require "validators/slug_uniqueness_validator"
 
 describe SlugUniquenessValidator do
   subject(:document_with_validator) {
-    SlugUniquenessValidator.new(document_repository, document)
+    SlugUniquenessValidator.new([document_repository], document)
   }
 
   let(:document) { double(:document, slug: slug, valid?: true, errors: {}) }

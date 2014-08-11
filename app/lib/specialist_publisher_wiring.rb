@@ -45,8 +45,7 @@ SpecialistPublisherWiring = DependencyContainer.new do
 
   define_factory(:validatable_manual_with_sections_factory) {
     ->(attrs) {
-      SlugUniquenessValidator.new(
-        get(:manual_repository),
+      get(:slug_uniqueness_validator).call(
         ManualValidator.new(
           NullValidator.new(
             get(:manual_with_sections_factory).call(attrs),
@@ -105,8 +104,7 @@ SpecialistPublisherWiring = DependencyContainer.new do
           DocumentAssociationMarshaller.new(
             manual_specific_document_repository_factory: get(:manual_specific_document_repository_factory),
             decorator: ->(manual, attrs) {
-              SlugUniquenessValidator.new(
-                get(:manual_repository),
+              get(:slug_uniqueness_validator).call(
                 ManualValidator.new(
                   NullValidator.new(
                     ManualWithDocuments.new(
@@ -158,8 +156,7 @@ SpecialistPublisherWiring = DependencyContainer.new do
 
   define_factory(:validatable_cma_case_factory) {
     ->(*args) {
-      SlugUniquenessValidator.new(
-        get(:cma_case_repository),
+      get(:slug_uniqueness_validator).call(
         CmaCaseValidator.new(
           CmaCase.new(
             SpecialistDocument.new(
@@ -182,8 +179,7 @@ SpecialistPublisherWiring = DependencyContainer.new do
 
   define_factory(:validatable_aaib_report_factory) {
     ->(*args) {
-      SlugUniquenessValidator.new(
-        get(:aaib_report_repository),
+      get(:slug_uniqueness_validator).call(
         AaibReportValidator.new(
           get(:aaib_report_factory).call(*args),
         ),
@@ -212,8 +208,7 @@ SpecialistPublisherWiring = DependencyContainer.new do
 
   define_factory(:validatable_international_development_fund_factory) {
     ->(*args) {
-      SlugUniquenessValidator.new(
-        get(:international_development_fund_repository),
+      get(:slug_uniqueness_validator).call(
         InternationalDevelopmentFundValidator.new(
           InternationalDevelopmentFund.new(
             SpecialistDocument.new(
@@ -240,11 +235,7 @@ SpecialistPublisherWiring = DependencyContainer.new do
         slug_generator = SlugGenerator.new(prefix: manual.slug)
 
         ChangeNoteValidator.new(
-          SlugUniquenessValidator.new(
-            SpecialistDocumentRepository.new(
-              specialist_document_editions: SpecialistDocumentEdition.all,
-              document_factory: nil,
-            ),
+          get(:slug_uniqueness_validator).call(
             ManualDocumentValidator.new(
               SpecialistDocument.new(
                 slug_generator,
@@ -557,4 +548,20 @@ SpecialistPublisherWiring = DependencyContainer.new do
     FinderSchema.new(Rails.root.join("schemas/international-development-funds.json"))
   }
 
+  define_factory(:slug_uniqueness_validator) {
+    ->(entity) {
+      repositories = [
+        SpecialistDocumentRepository.new(
+          specialist_document_editions: SpecialistDocumentEdition.all,
+          document_factory: nil,
+        ),
+        ManualRepository.new(
+          collection: ManualRecord.all,
+          factory: nil,
+        ),
+      ]
+
+      SlugUniquenessValidator.new(repositories, entity)
+    }
+  }
 end

@@ -1,8 +1,8 @@
 require "delegate"
 
 class SlugUniquenessValidator < SimpleDelegator
-  def initialize(document_repository, document)
-    @document_repository = document_repository
+  def initialize(repositories, document)
+    @repositories = repositories
     @document = document
     @error_state = false
     super(@document)
@@ -18,7 +18,7 @@ class SlugUniquenessValidator < SimpleDelegator
 
   private
 
-  attr_reader :document_repository, :document
+  attr_reader :repositories, :document
 
   def slug_error
     slug_unique? ? {} : { slug: error_message }
@@ -29,6 +29,8 @@ class SlugUniquenessValidator < SimpleDelegator
   end
 
   def slug_unique?
-    document_repository.slug_unique?(document)
+    repositories.all? { |repo|
+      repo.slug_unique?(document)
+    }
   end
 end
