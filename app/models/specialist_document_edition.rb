@@ -40,6 +40,13 @@ class SpecialistDocumentEdition
   index "state"
   index "updated_at"
 
+  def self.slug_unique?(slug, document_id)
+    where(
+      :slug => slug,
+      :document_id.ne => document_id,
+    ).empty?
+  end
+
   def build_attachment(attributes)
     attachments.build(attributes.merge(
       filename: attributes.fetch(:file).original_filename

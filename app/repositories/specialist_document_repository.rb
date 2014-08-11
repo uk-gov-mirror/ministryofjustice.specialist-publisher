@@ -48,11 +48,10 @@ class SpecialistDocumentRepository
   end
 
   def slug_unique?(document)
-    # TODO: push this method down into persistence layer
-    editions_with_slug = specialist_document_editions.where(
-      :slug => document.slug,
-      :document_id.ne => document.id,
-    ).empty?
+    specialist_document_editions.slug_unique?(
+      document.slug,
+      document.id,
+    )
   end
 
   def store(document)

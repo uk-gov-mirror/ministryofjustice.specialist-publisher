@@ -22,6 +22,13 @@ class ManualRecord
     order_by([:updated_at, :desc])
   end
 
+  def self.slug_unique?(slug, manual_id)
+    where(
+      :slug => slug,
+      :manual_id.ne => manual_id,
+    ).empty?
+  end
+
   def new_or_existing_draft_edition
     if latest_edition && latest_edition.state == "draft"
       latest_edition
