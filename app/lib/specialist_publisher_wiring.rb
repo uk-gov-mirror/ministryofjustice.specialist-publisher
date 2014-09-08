@@ -17,6 +17,7 @@ require "gds_api/rummager"
 require "gds_api_proxy"
 require "id_generator"
 require "manual_database_exporter"
+require "manual_pdf_exporter"
 require "marshallers/document_association_marshaller"
 require "marshallers/manual_publish_task_association_marshaller"
 require "medical_safety_alert_indexable_formatter"
@@ -725,9 +726,17 @@ SpecialistPublisherWiring = DependencyContainer.new do
     }
   }
 
+  define_factory(:manual_pdf_exporter) {
+    ->(manual) {
+      ManualPDFExporter.new(
+        manual,
+        get(:manual_document_renderer),
+      ).call
+    }
+  }
+
   define_factory(:manual_and_documents_content_api_exporter) {
     ->(manual) {
-
       get(:manual_content_api_exporter).call(manual)
 
       manual.documents.each do |exportable|

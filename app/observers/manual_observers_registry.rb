@@ -10,6 +10,7 @@ class ManualObserversRegistry
       publication_logger,
       panopticon_exporter,
       content_api_exporter,
+      pdf_exporter,
       change_note_content_api_exporter,
       rummager_exporter,
       publishing_api_exporter,
@@ -69,6 +70,10 @@ private
 
   def content_api_exporter
     SpecialistPublisherWiring.get(:manual_and_documents_content_api_exporter)
+  end
+
+  def pdf_exporter
+    SpecialistPublisherWiring.get(:manual_pdf_exporter)
   end
 
   def publishing_api_exporter
