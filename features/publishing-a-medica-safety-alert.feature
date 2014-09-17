@@ -23,4 +23,3 @@ Feature: Publishing an Medical Safety Alert
     When I publish a new Medical Safety Alert
     And I edit the Medical Safety Alert and republish
     Then the amended document should be published
-    And previous editions should be archived

@@ -23,4 +23,3 @@ Feature: Publishing an Drug Safety Update
     When I publish a new Drug Safety Update
     And I edit the Drug Safety Update and republish
     Then the amended document should be published
-    And previous editions should be archived

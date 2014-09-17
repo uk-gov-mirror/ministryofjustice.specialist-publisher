@@ -86,15 +86,15 @@ SpecialistPublisherWiring = DependencyContainer.new do
   end
 
   define_singleton(:drug_safety_update_repository) do
-    SpecialistDocumentRepository.new(
-      specialist_document_editions: SpecialistDocumentEdition.where(document_type: "drug_safety_update"),
+    DocumentRepository.new(
+      collection: DocumentRecord.where(document_type: "drug_safety_update"),
       document_factory: get(:validatable_drug_safety_update_factory),
     )
   end
 
   define_singleton(:medical_safety_alert_repository) do
-    SpecialistDocumentRepository.new(
-      specialist_document_editions: SpecialistDocumentEdition.where(document_type: "medical_safety_alert"),
+    DocumentRepository.new(
+      collection: DocumentRecord.where(document_type: "medical_safety_alert"),
       document_factory: get(:validatable_medical_safety_alert_factory),
     )
   end
@@ -242,15 +242,15 @@ SpecialistPublisherWiring = DependencyContainer.new do
 
   define_factory(:drug_safety_update_builder) {
     DrugSafetyUpdateBuilder.new(
-      get(:validatable_drug_safety_update_factory),
-      IdGenerator,
+      factory: get(:validatable_drug_safety_update_factory),
+      id_generator: IdGenerator,
     )
   }
 
   define_factory(:medical_safety_alert_builder) {
     MedicalSafetyAlertBuilder.new(
-      get(:validatable_medical_safety_alert_factory),
-      IdGenerator,
+      factory: get(:validatable_medical_safety_alert_factory),
+      id_generator: IdGenerator,
     )
   }
 
@@ -338,8 +338,8 @@ SpecialistPublisherWiring = DependencyContainer.new do
 
         ChangeNoteValidator.new(
           SlugUniquenessValidator.new(
-            SpecialistDocumentRepository.new(
-              specialist_document_editions: SpecialistDocumentEdition.all,
+            DocumentRepository.new(
+              collection: DocumentRecord.all,
               document_factory: nil,
             ),
             ManualDocumentValidator.new(

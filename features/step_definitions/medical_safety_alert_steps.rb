@@ -25,7 +25,7 @@ When(/^I create a Medical Safety Alert with invalid fields$/) do
 end
 
 Then(/^the Medical Safety Alert should not have been created$/) do
-  check_document_does_not_exist_with(@msa_fields)
+  check_no_document_created(:medical_safety_alert)
 end
 
 Given(/^a draft Medical Safety Alert exists$/) do

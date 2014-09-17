@@ -25,7 +25,7 @@ When(/^I create a Drug Safety Update with invalid fields$/) do
 end
 
 Then(/^the Drug Safety Update should not have been created$/) do
-  check_document_does_not_exist_with(@dsu_fields)
+  check_no_document_created(:drug_safety_update)
 end
 
 Given(/^a draft Drug Safety Update exists$/) do
