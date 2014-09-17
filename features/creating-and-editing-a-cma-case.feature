@@ -40,7 +40,7 @@ Feature: Creating and editing a CMA case
   Scenario: Panopticon timeout
     Given a draft CMA case exists
     And Panopticon is timing out
-    When I edit a CMA case
+    When I edit the CMA case
     Then I should not see an error
 
   @javascript
