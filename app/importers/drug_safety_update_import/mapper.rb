@@ -32,7 +32,7 @@ module DrugSafetyUpdateImport
         body
         title
         summary
-	therapeutic_area
+        therapeutic_area
       )
     end
   end
