@@ -88,7 +88,7 @@ module DrugSafetyUpdateImport
     end
 
     def repo
-      SpecialistPublisherWiring.get(:drug_safety_update_repository)
+      SpecialistPublisherWiring.get(:repository_registry).drug_safety_update_repository
     end
 
     def null_validator(thing)
