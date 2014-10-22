@@ -76,11 +76,11 @@ module DrugSafetyUpdateImport
     def report_builder
       DrugSafetyUpdateBuilder.new(
         ->(*args) {
-          SlugUniquenessValidator.new(
-            repo,
-            null_validator(
-              SpecialistPublisherWiring.get(:drug_safety_update_factory).call(*args),
-            )
+          null_validator(
+            SpecialistPublisherWiring
+            .get(:validatable_entity_factories)
+            .drug_safety_update_factory
+            .call(*args)
           )
         },
         IdGenerator,
