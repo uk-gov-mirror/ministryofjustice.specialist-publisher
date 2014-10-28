@@ -74,7 +74,7 @@ module DrugSafetyUpdateImport
     end
 
     def report_builder
-      DrugSafetyUpdateBuilder.new(
+      SpecialistDocumentBuilder.new("drug_safety_update",
         ->(*args) {
           null_validator(
             SpecialistPublisherWiring
@@ -82,8 +82,7 @@ module DrugSafetyUpdateImport
             .drug_safety_update_factory
             .call(*args)
           )
-        },
-        IdGenerator,
+        }
       )
     end
 
