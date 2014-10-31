@@ -44,8 +44,10 @@ FactoryGirl.define do
   end
 
   factory :specialist_document_edition do
-    sequence(:slug) {|n| "test-specialist-document-#{n}" }
-    sequence(:title) {|n| "Test Specialist Document #{n}" }
+    sequence(:slug) { |n| "test-specialist-document-#{n}" }
+    sequence(:title) { |n| "Test Specialist Document #{n}" }
+    sequence(:document_id) { |n| "test-document-#{n}" }
+
     summary "My summary"
     body "My body"
     document_type "cma_case"

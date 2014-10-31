@@ -88,6 +88,12 @@ describe SpecialistDocumentRepository do
         specialist_document_repository.all.map(&:title).to_a
       ).to eq([@edition_2, @edition_1].map(&:title))
     end
+
+    it "returns all documents by date updated desc with pagination" do
+      expect(
+        specialist_document_repository.all.map(&:title).to_a
+      ).to eq([@edition_2, @edition_1].map(&:title))
+    end
   end
 
   describe "#[]" do
