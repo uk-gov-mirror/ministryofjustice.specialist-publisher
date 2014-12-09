@@ -1,9 +1,11 @@
 <% if document.published? %>
-  <%= f.check_box :minor_update,
-    note: {
-      text: "Only use for minor changes like fixes to typos, links, GOV.UK style or metadata.",
-      class: "help-block"
-    }
-  %>
-  <%= f.text_area :change_note, class: 'short-textarea' %>
+  <%= f.radio_button :minor_update, :true, label: "Minor update" %>
+  <div class="upate-hidden">
+    <span class="help-block">Only use for minor changes like fixes to typos, links, GOV.UK style or metadata.</span>
+  </div>
+  <hr/>
+  <%= f.radio_button :minor_update, :false, label: "Major update" %>
+  <div class="upate-hidden">
+    <%= f.text_area :change_note, class: 'short-textarea' %>
+  </div>
 <% end %>

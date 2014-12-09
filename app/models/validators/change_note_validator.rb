@@ -31,6 +31,10 @@ class ChangeNoteValidator < SimpleDelegator
     !entity.published?
   end
 
+  def no_change
+    entity.minor_update.nil?
+  end
+
   def change_note_provided?
     if change_note.present?
       true
@@ -47,6 +51,7 @@ class ChangeNoteValidator < SimpleDelegator
   def add_errors
     @errors[:change_note] ||= []
     @errors[:change_note].push(change_note_error)
+    @errors[:minor_update].push("This is wrong")
   end
 
   def change_note_error

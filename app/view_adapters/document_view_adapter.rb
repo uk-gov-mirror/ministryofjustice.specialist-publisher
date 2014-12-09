@@ -35,12 +35,24 @@ class DocumentViewAdapter < SimpleDelegator
     end
   end
 
+  def update_type
+    if minor_update
+      "minor"
+    else
+      "major"
+    end
+  end
+
   def minor_update
-    document.draft? ? document.minor_update : false
+    if !document.draft?
+      document.minor_update?
+    else
+      nil
+    end
   end
 
   def change_note
-    document.draft? ? document.change_note : ""
+    minor_update.nil? ? "" : document.change_note
   end
 
 private
