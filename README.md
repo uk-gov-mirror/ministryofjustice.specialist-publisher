@@ -106,4 +106,5 @@ Services do things such as previewing a document, creation, updating, showing, w
 Due to the nature of Specialist Publisher and it's document formats, we've added some scripts to do various things such as importing documents as a format and mass publishing.
 
 - **Importing**: Using a copy of scraped content formatted with a `metadata` and `downloads` folder running these scripts. See `doc/importing.md` for how to do an import. Important to note that this doesn't do a find_or_create, it will simply create them. So running it twice will create duplicates of all the documents.
+- **Bulk publishing**: After an import, we can bulk publish all draft documents for a given format to avoid having to do it manually. For more information see `doc/bulk_publishing.md`.
 
