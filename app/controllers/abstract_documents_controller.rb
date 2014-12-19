@@ -27,7 +27,6 @@ class AbstractDocumentsController < ApplicationController
   def show
     document, other_metadata = services.show(document_id).call
     slug_unique = other_metadata.fetch(:slug_unique)
-    publishable = other_metadata.fetch(:publishable)
 
     unless slug_unique
       flash.now[:error] = "Warning: This document's URL is already used on GOV.UK. You can't publish it until you change the title."
@@ -36,7 +35,7 @@ class AbstractDocumentsController < ApplicationController
     render("specialist_documents/show", locals: {
       document: view_adapter(document),
       slug_unique: slug_unique,
-      publishable: publishable,
+      publish_form: PublishFormViewAdapter.new(document, other_metadata, current_finder),
     })
   end
 

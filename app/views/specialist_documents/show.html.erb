@@ -71,7 +71,7 @@
 </div>
 
 <div class="actions">
-  <%= publish_form(slug_unique, publishable, document) %>
+  <%= publish_form.render %>
 
   <% if current_user_can_withdraw?(document.document_type) %>
     <%= form_tag([:withdraw, document], method: :post) do %>
