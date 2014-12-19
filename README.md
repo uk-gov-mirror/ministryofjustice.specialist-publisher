@@ -15,14 +15,12 @@ Publishing App for Specialist Documents and Manuals.
 ## Current formats
 
 ### Live
+* [AAIB Reports](https://www.gov.uk/aaib-reports)
 * [CMA Cases](https://www.gov.uk/cma-cases)
+* [Drug Safety Updates](https://www.gov.uk/drug-safety-update)
 * [International Funding Development](https://www.gov.uk/international-funding-development)
 * Manuals (there's no public index page for Manuals, they can all be found at `gov.uk/guidance/:manual-slug`)
-
-### Live with no content
-* AAIB Reports
-* Drug Safety Updates
-* Medical Safety Alerts
+* [Medical Safety Alerts](https://www.gov.uk/drug-device-alerts)
 
 ## Dependancies
 
