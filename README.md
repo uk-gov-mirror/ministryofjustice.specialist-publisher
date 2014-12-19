@@ -22,7 +22,7 @@ Publishing App for Specialist Documents and Manuals.
 * Manuals (there's no public index page for Manuals, they can all be found at `gov.uk/guidance/:manual-slug`)
 * [Medical Safety Alerts](https://www.gov.uk/drug-device-alerts)
 
-## Dependancies
+## Dependencies
 
 * [alphagov/static](http://github.com/alphagov/static): provides static assets (JS/CSS)
 * [alphagov/panopticon](http://github.com/alphagov/panopticon): provides public URLs for content on GOV.UK
