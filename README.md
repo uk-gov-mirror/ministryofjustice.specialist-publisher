@@ -99,4 +99,11 @@ Non standard Rails directories and what they're used for:
 
 ### Services
 
- Services do things such as previewing a document, creation, updating, showing, withdrawing, queueing. This replaces the normal Rails behaviour of completing these actions directly from a controller, instead we call a service registry
+Services do things such as previewing a document, creation, updating, showing, withdrawing, queueing. This replaces the normal Rails behaviour of completing these actions directly from a controller, instead we call a service registry for a document in the `AbstractDocumentsController` and then call the individual services like `services.show(document_id).call` where `document_id` is a UUID representing the document.
+
+## Bin scripts
+
+Due to the nature of Specialist Publisher and it's document formats, we've added some scripts to do various things such as importing documents as a format and mass publishing.
+
+- **Importing**: Using a copy of scraped content formatted with a `metadata` and `downloads` folder running these scripts. See `doc/importing.md` for how to do an import. Important to note that this doesn't do a find_or_create, it will simply create them. So running it twice will create duplicates of all the documents.
+
