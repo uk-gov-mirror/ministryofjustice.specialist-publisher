@@ -1,12 +1,14 @@
 class DocumentRepositoryObserverMapper
   def initialize(mapping = nil)
-    mapping ||= repository_listeners_map
-    @mapping = mapping
+    @mapping = mapping || repository_listeners_map
   end
 
-  def repository_listeners(subset = nil)
-    return mapping.values if subset.nil?
-    [mapping.fetch(subset)]
+  def all
+    mapping.values
+  end
+
+  def for_types(*document_types)
+    document_types.map { |type| mapping.fetch(type) }
   end
 
 private

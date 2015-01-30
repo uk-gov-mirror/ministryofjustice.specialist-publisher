@@ -25,19 +25,29 @@ RSpec.describe DocumentRepositoryObserverMapper do
     )
   }
 
-  it "returns all observers for a nil document type" do
-    listeners = mapper.repository_listeners(nil)
-    expect(listeners.size).to eq(2)
-    expect(listeners).to eq([foo, bar])
+  describe "#all" do
+    it "returns repositories and observers for all document types" do
+      listeners = mapper.all
+      expect(listeners.size).to eq(2)
+      expect(listeners).to eq([foo, bar])
+    end
   end
 
-  it "returns the relevant observer if a document type is provided" do
-    listeners = mapper.repository_listeners("foo")
-    expect(listeners.size).to eq(1)
-    expect(listeners.first).to eq(foo)
-  end
+  describe "#for_types" do
+    it "returns the repository and observer for a single document type" do
+      listeners = mapper.for_types("foo")
+      expect(listeners.size).to eq(1)
+      expect(listeners).to eq([foo])
+    end
 
-  it "raises if an unknown document type is requested" do
-    expect { mapper.repository_listeners("baz") }.to raise_error
+    it "returns the repository and observer for multiple document types" do
+      listeners = mapper.for_types("foo", "bar")
+      expect(listeners.size).to eq(2)
+      expect(listeners).to eq([foo, bar])
+    end
+
+    it "raises if an unknown document type is requested" do
+      expect { mapper.for_types("baz") }.to raise_error
+    end
   end
 end
