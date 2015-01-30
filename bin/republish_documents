@@ -4,9 +4,16 @@ require File.expand_path("../../config/environment", __FILE__)
 require "document_republisher"
 require "document_repository_observer_mapper"
 
-document_type = ARGV.any? && ARGV.fetch(0)
-
 mapper = DocumentRepositoryObserverMapper.new
-repo_listeners = document_type ? mapper.for_types(document_type) : mapper.all
+
+document_types = ARGV
+
+if document_types.any?
+  repo_listeners = mapper.for_types(*document_types)
+  puts "Republishing all documents of type: #{document_types.join(", ")}"
+else
+  repo_listeners = mapper.all
+  puts "Republishing __all types__ of documents"
+end
 
 DocumentRepublisher.new(repo_listeners).republish!
