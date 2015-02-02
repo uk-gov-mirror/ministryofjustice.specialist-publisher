@@ -1,0 +1,17 @@
+#!/usr/bin/env ruby
+
+require File.expand_path("../../config/environment", __FILE__)
+require "document_republisher"
+require "document_repository_observer_mapper"
+
+mapper = DocumentRepositoryObserverMapper.new
+
+document_type = ARGV.fetch(0)
+document_id = ARGV.fetch(1)
+
+repo_listeners = mapper.for_types(document_type)
+
+DocumentRepublisher.new(
+  repository_listeners: repo_listeners,
+  document_ids: [document_id],
+).republish!
