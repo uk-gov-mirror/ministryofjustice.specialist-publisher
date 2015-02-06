@@ -61,6 +61,7 @@ module DocumentHelpers
       "international-development-funding" => "international_development_fund",
       "drug-safety-update" => "drug_safety_update",
       "drug-device-alerts" => "medical_safety_alert",
+      "esi-funds" => "esi_fund",
       "maib-reports" => "maib_report",
       "raib-reports" => "raib_report",
       "countryside-stewardship-grants" => "countryside_stewardship_grant",
