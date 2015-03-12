@@ -1,0 +1,39 @@
+#!/usr/bin/env ruby
+
+require "csv"
+
+def parse_line(line)
+  keyed_values, messages = line.partition { |element|
+    element =~ /\A[a-z0-9_-]+: /
+  }
+
+  output = keyed_values.reduce({}) { |memo, element|
+    k, v = element.split(": ", 2)
+
+    memo.merge(k => v)
+  }
+
+  output.reject! { |k, _| %w(duration source).include?(k) }
+
+  output.merge(
+    messages: messages.join(", "),
+  )
+end
+
+def dump_csv(rows)
+  headings = rows.flat_map(&:keys).uniq
+  options = {
+    col_sep: "\t",
+    headers: headings,
+    write_headers: true,
+  }
+
+  CSV.generate(options) do |csv|
+    rows.map(&:values).each(&csv.method(:puts))
+  end
+end
+
+log_file = ARGV.fetch(0)
+input = CSV.read(log_file, col_sep: "\t")
+spreadsheet_rows = input.map(&method(:parse_line))
+puts dump_csv(spreadsheet_rows)
