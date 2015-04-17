@@ -4,7 +4,7 @@ require "csv"
 
 def parse_line(line)
   keyed_values, messages = line.partition { |element|
-    element =~ /\A[-_a-z0-9]+: /
+    element =~ /\A[-_ a-z0-9]+: /
   }
 
   output = keyed_values.reduce({}) { |memo, element|
