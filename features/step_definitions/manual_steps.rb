@@ -384,7 +384,7 @@ Given(/^a published manual with at least two sections exists$/) do
     summary: "Nullam quis risus eget urna mollis ornare vel eu leo.",
   }
 
-  create_manual(@manual_fields)
+  create_manual_without_ui(@manual_fields)
 
   @section_titles = []
   @section_slugs = []
