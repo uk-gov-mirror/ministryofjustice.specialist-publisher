@@ -23,7 +23,6 @@ class AbstractSpecialistDocumentObserversRegistry
       publishing_api_exporter,
       panopticon_exporter,
       rummager_exporter,
-      publication_alert_exporter,
     ]
   end
 
