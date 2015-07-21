@@ -33,6 +33,19 @@ Publishing App for Specialist Documents and Manuals.
 * [alphagov/publishing-api](http://github.com/alphagov/publishing-api): allows documents to be published to the Publishing queue
 * [alphagov/email-alert-api](http://github.com/alphagov/email-alert-api): sends emails to subscribed users when documents are published
 
+## Create a user
+
+If this is the first time you've launched the application, you will need
+to create a dummy user in the `specialist-publisher` application:
+
+```bash
+cd specialist-publisher
+bundle exec rake permissions:grant
+```
+
+NOTE: due to strangeness in the way mongo indexes its records, this is
+not idempotent. It will create a new demo user every time it is run.
+
 ## Running the application
 
 ```
