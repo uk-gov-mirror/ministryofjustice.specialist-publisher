@@ -9,6 +9,6 @@ class <%= class_name %>Validator < SimpleDelegator
   validates :summary, presence: true
   validates :body, presence: true, safe_html: true
 <% @rummager_attributes.sort.each do |attribute| %>
-  validates :<%= attribute %>, presence: true<% end %>
+  validates :<%= attribute %>, presence: true<% if @rummager_plus_name_types[attribute] == 'date' %>, date: true<% end %><% end %>
 
 end
