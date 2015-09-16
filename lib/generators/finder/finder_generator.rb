@@ -113,6 +113,8 @@ class FinderGenerator < Rails::Generators::NamedBase
         name_field = "#{field}_name"
         @rummager_plus_name_attributes << name_field
         @rummager_plus_name_types[name_field] = @rummager_types[i]
+      else
+        @rummager_plus_name_types[field] = @rummager_types[i]
       end
     end
   end
