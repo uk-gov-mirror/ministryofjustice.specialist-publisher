@@ -1,7 +1,8 @@
 require "delegate"
 require "validators/date_validator"
 require "validators/safe_html_validator"
-
+<% if @rummager_attributes.any? {|a| a == "tribunal_decision_sub_category" } %>require "validators/tribunal_decision_sub_category_validator"
+<% end %>
 class <%= class_name %>Validator < SimpleDelegator
   include ActiveModel::Validations
 
@@ -9,6 +10,6 @@ class <%= class_name %>Validator < SimpleDelegator
   validates :summary, presence: true
   validates :body, presence: true, safe_html: true
 <% @rummager_attributes.sort.each do |attribute| %>
-  validates :<%= attribute %>, presence: true<% if @rummager_plus_name_types[attribute] == 'date' %>, date: true<% end %><% end %>
+  validates :<%= attribute %>, presence: true<% if @rummager_plus_name_types[attribute] == "date" %>, date: true<% elsif attribute == "tribunal_decision_sub_category" %>, tribunal_decision_sub_category: true<% end %><% end %>
 
 end

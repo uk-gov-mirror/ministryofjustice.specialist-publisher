@@ -113,9 +113,8 @@ class FinderGenerator < Rails::Generators::NamedBase
         name_field = "#{field}_name"
         @rummager_plus_name_attributes << name_field
         @rummager_plus_name_types[name_field] = @rummager_types[i]
-      else
-        @rummager_plus_name_types[field] = @rummager_types[i]
       end
+      @rummager_plus_name_types[field] = @rummager_types[i]
     end
   end
 
@@ -173,6 +172,11 @@ FILE
   def create_validator
     template "validator.rb.erb",
         "app/models/validators/#{name.underscore}_validator.rb"
+  end
+
+  def create_validator_spec
+    template "validator_spec.rb.erb",
+        "spec/models/validators/#{name.underscore}_validator_spec.rb"
   end
 
   def create_view_adapter
