@@ -54,7 +54,6 @@ module DocumentHelpers
     document_type_slug_prefix_map = {
       "cma-cases" => "cma_case",
       "aaib-reports" => "aaib_report",
-      "asylum-support-decisions" => "asylum_support_decision",
       "international-development-funding" => "international_development_fund",
       "drug-safety-update" => "drug_safety_update",
       "drug-device-alerts" => "medical_safety_alert",
@@ -62,6 +61,7 @@ module DocumentHelpers
       "maib-reports" => "maib_report",
       "raib-reports" => "raib_report",
       "countryside-stewardship-grants" => "countryside_stewardship_grant",
+      "utaac-decisions" => "utaac_decision",
       "vehicle-recalls-faults" => "vehicle_recalls_and_faults_alert",
     }
 

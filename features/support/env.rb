@@ -110,7 +110,6 @@ require "mocks"
 require "api_helpers"
 
 require "aaib_report_helpers"
-require "asylum_support_decision_helpers"
 require "cma_case_helpers"
 require "csg_helpers"
 require "dsu_helpers"
@@ -119,6 +118,7 @@ require "idf_helpers"
 require "maib_report_helpers"
 require "msa_helpers"
 require "raib_report_helpers"
+require "utaac_decision_helpers"
 require "vehicle_recalls_and_faults_alert_helpers"
 
 World(RummagerHelpers)
@@ -135,7 +135,6 @@ World(AccessControlHelpers)
 World(SearchHelpers)
 
 World(AaibReportHelpers)
-World(AsylumSupportDecisionHelpers)
 World(CmaCaseHelpers)
 World(CsgHelpers)
 World(DsuHelpers)
@@ -144,4 +143,5 @@ World(IdfHelpers)
 World(MaibReportHelpers)
 World(MsaHelpers)
 World(RaibReportHelpers)
+World(UtaacDecisionHelpers)
 World(VehicleRecallsAndFaultsAlertHelpers)

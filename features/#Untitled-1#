@@ -1,0 +1,10 @@
+These feature integration tests cover the same core scenarios that have
+been tested for other finders, such as the AAIB report finder.
+
+The scenarios cover creating and editing, publishing, withdrawing an
+Upper Tribunal (Administrative Appeals Chamber) decision, and adding
+and replacing attachments to a decision.
+
+It was easiest to add these in a single commit, as they were developed at
+the same time based on a copy of the features for asylum support tribunal
+decisions.
