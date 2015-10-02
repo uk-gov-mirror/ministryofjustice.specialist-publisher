@@ -39,6 +39,9 @@ end
 class FinderGenerator < Rails::Generators::NamedBase
   source_root File.expand_path("../templates", __FILE__)
 
+  class_option :base_path, desc: "Base path slug for url",
+      type: :string, required: true
+
   class_option :title, desc: "Title of finder",
       type: :string, required: true
 
@@ -293,7 +296,7 @@ INSERT
   def create_metadata
     metadata = {
       content_id: "#{options[:content_id]}",
-      base_path: "/#{name.pluralize}",
+      base_path: "/#{options[:base_path]}",
       format_name: "#{options[:display_name].singularize}",
       name: "#{options[:display_name]}",
       description: "#{options[:display_description]}",
