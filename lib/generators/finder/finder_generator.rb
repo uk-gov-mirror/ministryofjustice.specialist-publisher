@@ -60,7 +60,7 @@ class FinderGenerator < Rails::Generators::NamedBase
   class_option :display_name, desc: "Finder name for display",
       type: :string, required: true
 
-  class_option :display_description, desc: "Finder description for display",
+  class_option :metadata_description, desc: "Finder description for display",
       type: :string, required: true
 
   class_option :document_noun, desc: "noun for a single document",
@@ -299,7 +299,7 @@ INSERT
       base_path: "/#{options[:base_path]}",
       format_name: "#{options[:display_name].singularize}",
       name: "#{options[:display_name]}",
-      description: "#{options[:display_description]}",
+      description: "#{options[:metadata_description]}",
       beta: true,
       filter: {
         document_type: "#{name.underscore}"
