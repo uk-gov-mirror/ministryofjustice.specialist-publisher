@@ -335,7 +335,7 @@ INSERT
     end
 
     metadata.merge!(summary: options[:summary]) if options[:summary]
-    metadata.merge!(preview_only: true) if options[:preview_only]
+    metadata.merge!(pre_production: true) if options[:preview_only]
 
     metadata_file = "finders/metadata/#{name.pluralize}.json"
     create_file metadata_file, "#{JSON.pretty_generate(metadata)}\n"
