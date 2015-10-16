@@ -322,8 +322,10 @@ INSERT
     if options[:email_filter_by].to_s.size > 0
       filter_by = options[:email_filter_by]
       metadata.merge!(email_filter_by: filter_by)
+      allowed_values = @allowed_values[filter_by]
+      puts "no allowed values found for: #{filter_by}"
       metadata.merge!(
-        email_signup_choice: @allowed_values[filter_by].map do |a|
+        email_signup_choice: allowed_values.map do |a|
           {
             key: a["value"],
             radio_button_name: a["label"],
