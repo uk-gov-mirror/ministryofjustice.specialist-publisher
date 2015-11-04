@@ -388,7 +388,7 @@ FILE
         #{class_name}Validator.new(
           #{class_name}.new(
             SpecialistDocument.new(
-              SlugGenerator.new(prefix: "#{name.pluralize}"),
+              SlugGenerator.new(prefix: "#{options[:base_path].pluralize}"),
               *args,
             ),
           )
