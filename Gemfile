@@ -1,79 +1,48 @@
 source "https://rubygems.org"
 
-gem "rails", "3.2.22.1"
+gem "rails", "6.0.3.6"
 
-# Alphabetical order please :)
-gem "airbrake", "3.1.15"
-gem "faraday", "0.9.0"
-gem "fetchable", "1.0.0"
-gem "foreman", "0.74.0"
-gem "gds-sso", "10.0.0"
-gem "generic_form_builder", "0.11.0"
-gem 'govuk_admin_template', '3.0.0'
-gem "kaminari", "0.16.1"
-gem "logstasher", "0.4.8"
-gem "mongoid", "2.5.2"
-gem "mongoid_rails_migrations", "1.0.0"
-gem "multi_json", "1.10.0"
-gem "plek", "1.12.0"
-gem "quiet_assets", "1.0.3"
-gem "rack", "~> 1.4.6" # explicitly requiring patched version re: CVE-2015-3225
-gem "sidekiq", "3.2.1"
-gem "sidekiq-statsd", "0.1.5"
-gem "unicorn", "4.8.2"
-
-if ENV["GOVSPEAK_DEV"]
-  gem "govspeak", :path => "../govspeak"
-else
-  gem "govspeak", "3.1.0"
-end
-
-if ENV["CONTENT_MODELS_DEV"]
-  gem "govuk_content_models", :path => "../govuk_content_models"
-else
-  gem "govuk_content_models", "28.7.0"
-end
-
-if ENV["API_DEV"]
-  gem "gds-api-adapters", :path => "../gds-api-adapters"
-else
-  gem "gds-api-adapters", "28.0.1"
-end
+gem "gds-api-adapters"
+gem "gds-sso"
+gem "generic_form_builder"
+gem "govspeak"
+gem "govuk_admin_template"
+gem "govuk_app_config"
+gem "govuk_frontend_toolkit", "9.0.0" # we rely on this for correctly previewing govspeak (including interactive elements) - to help with that keep it in sync with the version used in manuals-frontend
+gem "govuk_sidekiq"
+gem "mongoid"
+gem "plek"
+gem "raindrops"
+gem "sass-rails"
+gem "state_machine"
+gem "uglifier"
 
 group :development do
   gem "better_errors"
   gem "binding_of_caller"
-  gem "sinatra"
-end
-
-group :assets do
-  gem "sass-rails", "3.2.6"
-  gem "uglifier", ">= 1.3.0"
-  gem "govuk_frontend_toolkit", "0.44.0"
-  gem "select2-rails",  "3.5.9"
-end
-
-gem "byebug", group: [:development, :test]
-gem "pry", group: [:development, :test]
-gem "awesome_print", group: [:development, :test]
-
-group :test do
-  gem "cucumber", "1.3.16"
-  gem "cucumber-rails", "1.4.0", require: false
-  gem "launchy"
-  gem "factory_girl", "4.3.0"
-  gem "database_cleaner", "1.2.0"
-  gem "poltergeist", "1.5.0"
-  gem "phantomjs", ">= 1.9.7.1"
-  gem "webmock", "~> 1.17.4"
-  gem "rspec", "3.2.0"
-  gem "rspec-rails", "3.2.0"
-  gem "rubocop"
-  gem "simplecov"
-  gem "timecop"
-  gem "govuk-content-schema-test-helpers", "1.3.0"
 end
 
 group :development, :test do
-  gem "jasmine-rails"
+  gem "awesome_print"
+  gem "govuk_test"
+  gem "jasmine"
+  gem "jasmine_selenium_runner"
+  gem "pry-byebug"
+end
+
+group :test do
+  gem "cucumber", require: false
+  gem "cucumber-rails", require: false
+  gem "database_cleaner-mongoid"
+  gem "factory_bot_rails"
+  gem "govuk-content-schema-test-helpers"
+  gem "launchy"
+  gem "rails-controller-testing"
+  gem "rspec"
+  gem "rspec-rails"
+  gem "rubocop-govuk"
+  gem "simplecov"
+  gem "timecop"
+  gem "webdrivers"
+  gem "webmock"
 end

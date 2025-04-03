@@ -7,26 +7,28 @@ class PublishManualWorker
     backtrace: true,
   )
 
-  def perform(task_id)
+  def perform(task_id, _params = {})
     task = ManualPublishTask.find(task_id)
     task.start!
 
-    services.publish(task.manual_id, task.version_number).call
+    service = Manual::PublishService.new(
+      user: User.gds_editor,
+      manual_id: task.manual_id,
+      version_number: task.version_number,
+    )
+    service.call
 
     task.finish!
-  rescue GdsApi::HTTPServerError => error
-    log_error(error)
-    requeue_task(task_id, error)
-  rescue PublishManualService::VersionMismatchError,
-         GdsApi::HTTPErrorResponse => error
-    log_error(error)
-    abort_task(task, error)
+  rescue GdsApi::HTTPServerError => e
+    log_error(e)
+    requeue_task(task_id, e)
+  rescue Manual::PublishService::VersionMismatchError,
+         GdsApi::HTTPErrorResponse => e
+    log_error(e)
+    abort_task(task, e)
   end
 
 private
-  def services
-    ManualServiceRegistry.new
-  end
 
   def requeue_task(manual_id, error)
     # Raise a FailedToPublishError in order for Sidekiq to catch and requeue it
@@ -36,12 +38,13 @@ private
   end
 
   def abort_task(task, error)
-    task.update_attribute(:error, error.message)
+    task.update!(error: error.message)
     task.abort!
   end
 
   def log_error(error)
-    Airbrake.notify(error)
+    Rails.logger.error "#{self.class} error: #{error}"
+    GovukError.notify(error)
   end
 
   class FailedToPublishError < StandardError

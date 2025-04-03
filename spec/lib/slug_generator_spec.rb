@@ -1,19 +1,16 @@
-require "fast_spec_helper"
-
-require "slug_generator"
+require "spec_helper"
 
 describe SlugGenerator do
-  subject(:slug_gen) {
+  subject(:slug_gen) do
     SlugGenerator.new(
       prefix: prefix,
     )
-  }
+  end
 
   let(:prefix) { "prefix" }
   let(:title) { "My document" }
 
   describe "#call" do
-
     it "returns a slug based on the prefix and given title" do
       slug = slug_gen.call(title)
 
@@ -21,7 +18,7 @@ describe SlugGenerator do
     end
 
     context "when title contains non-word characters" do
-      let(:title) { %{Test_ &/Document"1} }
+      let(:title) { %(Test_ &/Document"1) }
 
       it "replaces all non-word characters with a single hyphen" do
         slug = slug_gen.call(title)

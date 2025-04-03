@@ -1,0 +1,30 @@
+<% content_for :breadcrumbs do %>
+  <li><%= link_to "Your manuals", manuals_path %></li>
+  <li><%= link_to manual.title, manual_path(manual) %></li>
+  <li class="active">Edit first publication date</li>
+<% end %>
+
+<h1 class="page-header">Edit first publication date</h1>
+
+<div class="row">
+  <div class="col-md-8">
+    <%= form_for manual, url: original_publication_date_manual_path(manual), method: :put do |f| %>
+      <%= render partial: "shared/form_errors", locals: { object: manual } %>
+      <%= f.label :originally_published_at, "First publication date:" %>
+      <div class="form-inline add-vertical-margins">
+        <%= f.datetime_select :originally_published_at, { include_blank: true, start_year: Date.today.year, end_year: 1945 }, { class: 'date form-control' } %>
+      </div>
+      <div class="checkbox add-vertical-margins">
+        <%= f.radio_button(:use_originally_published_at_for_public_timestamp, 1, tag_type: :p, label: 'Change the first published and last updated date.', checked: manual.use_originally_published_at_for_public_timestamp?) %>
+      </div>
+      <div class="checkbox add-vertical-margins">
+        <%= f.radio_button(:use_originally_published_at_for_public_timestamp, 0, tag_type: :p, label: 'Change the first published date.', checked: !manual.use_originally_published_at_for_public_timestamp?) %>
+      </div>
+
+      <div class="actions">
+        <button name="draft" class="btn btn-danger" data-disable-with="Saving...">Save as draft</button>
+        <%= link_to 'Cancel', manual_path(manual), class: "btn btn-default" %>
+      </div>
+    <% end %>
+  </div>
+</div>

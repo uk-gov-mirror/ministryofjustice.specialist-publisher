@@ -12,13 +12,14 @@ class PublicationLog
 
   alias_attribute :published_at, :created_at
 
-  scope :with_slug_prefix, ->(slug) { where(slug: /^#{slug}.*/) }
+  scope :with_slug_prefix, ->(slug) { where(slug: /^#{slug}(\/|$)/) }
 
   def self.change_notes_for(slug)
     with_slug_prefix(slug)
-      .sort_by(&:published_at)
-      .uniq { |publication|
+      .order_by(%i[created_at asc])
+      .to_a
+      .uniq do |publication|
         [publication.slug, publication.version_number]
-      }
+      end
   end
 end

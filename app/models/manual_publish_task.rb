@@ -9,11 +9,12 @@ class ManualPublishTask
   field :state, type: String
   field :error, type: String
 
-  scope :for_manual, ->(manual) {
-    all
-      .where(manual_id: manual.id)
-      .order_by([:version_number, :desc])
-  }
+  scope :for_manual,
+        lambda { |manual|
+          all
+            .where(manual_id: manual.id)
+            .order_by(%i[version_number desc], %i[updated_at desc])
+        }
 
   state_machine initial: :queued do
     event :start! do
@@ -28,5 +29,4 @@ class ManualPublishTask
       transition processing: :aborted
     end
   end
-
 end

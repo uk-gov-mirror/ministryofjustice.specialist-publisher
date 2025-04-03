@@ -16,8 +16,24 @@
 #
 # This would use the information in config/locales/es.yml.
 #
+# The following keys must be escaped otherwise they will not be retrieved by
+# the default I18n backend:
+#
+# true, false, on, off, yes, no
+#
+# Instead, surround them with single quotes.
+#
+# en:
+#   'true': 'foo'
+#
 # To learn more, please read the Rails Internationalization guide
-# available at http://guides.rubyonrails.org/i18n.html.
+# available at https://guides.rubyonrails.org/i18n.html.
 
 en:
   hello: "Hello world"
+  broken_links:
+    title: Broken links
+    broken:
+      subheading: We’ve found links in this document that may be broken
+    caution:
+      subheading: We’ve found some issues with links that may indicate problems, you should apply caution in linking to them

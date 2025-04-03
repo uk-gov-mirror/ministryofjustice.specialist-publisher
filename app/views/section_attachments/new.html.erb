@@ -1,0 +1,14 @@
+<% content_for :breadcrumbs do %>
+  <li><%= link_to "Your manuals", manuals_path %></li>
+  <li><%= link_to manual.title, manual_path(manual) %></li>
+  <li><%= link_to section.title, manual_section_path(manual, section) %></li>
+  <li class='active'>Add attachment</li>
+<% end %>
+
+<h1 class="page-header">Add attachment</h1>
+
+<%= render(partial: "form", locals: {
+  manual: manual,
+  section: section,
+  attachment: attachment,
+}) %>

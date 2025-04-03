@@ -1,3 +1,5 @@
+require "gds_api_constants"
+
 When(/^I create a manual$/) do
   @manual_fields = {
     title: "Example Manual Title",
@@ -6,6 +8,8 @@ When(/^I create a manual$/) do
   @manual_slug = "guidance/example-manual-title"
 
   create_manual(@manual_fields)
+
+  @manual = most_recently_created_manual
 end
 
 Then(/^the manual should exist$/) do
@@ -17,18 +21,17 @@ Then(/^I should see a link to preview the manual$/) do
 end
 
 Then(/^the manual should have been sent to the draft publishing api$/) do
-  check_manual_is_published_to_publishing_api(@manual_slug, draft: true)
+  check_manual_is_drafted_to_publishing_api(@manual.id)
 end
 
 Then(/^the edited manual should have been sent to the draft publishing api$/) do
-  check_manual_is_published_to_publishing_api(
-    @manual_slug,
-    extra_attributes: {title: @new_title},
-    draft: true
+  check_manual_is_drafted_to_publishing_api(
+    @manual.id,
+    extra_attributes: { title: @new_title },
   )
 end
 
-Given(/^a draft manual exists without any documents$/) do
+Given(/^a draft manual exists without any sections$/) do
   @manual_slug = "guidance/example-manual-title"
   @manual_title = "Example Manual Title"
 
@@ -38,11 +41,13 @@ Given(/^a draft manual exists without any documents$/) do
   }
 
   create_manual(@manual_fields)
+
+  @manual = most_recently_created_manual
 
   WebMock::RequestRegistry.instance.reset!
 end
 
-Given(/^a draft manual exists with some documents$/) do
+Given(/^a draft manual exists with some sections$/) do
   @manual_slug = "guidance/example-manual-title"
   @manual_title = "Example Manual Title"
 
@@ -53,23 +58,15 @@ Given(/^a draft manual exists with some documents$/) do
 
   create_manual(@manual_fields)
 
-  @attributes_for_documents = create_documents_for_manual(
+  @attributes_for_sections = create_sections_for_manual(
     manual_fields: @manual_fields,
     count: 2,
   )
-  WebMock::RequestRegistry.instance.reset!
-end
 
-Given(/^a draft manual was created without the UI$/) do
-  @manual_slug = "guidance/example-manual-title"
-  @manual_title = "Example Manual Title"
+  @manual = most_recently_created_manual
+  @sections = @manual.sections.to_a
+  @section = @sections.first
 
-  @manual_fields = {
-    title: "Example Manual Title",
-    summary: "Nullam quis risus eget urna mollis ornare vel eu leo.",
-  }
-
-  @manual = create_manual_without_ui(@manual_fields)
   WebMock::RequestRegistry.instance.reset!
 end
 
@@ -87,9 +84,10 @@ Given(/^a draft manual exists belonging to "(.*?)"$/) do |organisation_slug|
   WebMock::RequestRegistry.instance.reset!
 end
 
-When(/^I edit a manual$/) do
+When(/^I edit (?:a|the) manual$/) do
   @new_title = "Edited Example Manual"
   edit_manual(@manual_fields[:title], title: @new_title)
+  @manual = most_recently_created_manual
 end
 
 Then(/^the manual should have been updated$/) do
@@ -109,201 +107,239 @@ Then(/^I see errors for the title field$/) do
   check_for_errors_for_fields("title")
 end
 
-When(/^I create a document for the manual$/) do
-  @document_title = "Created Section 1"
-  @document_slug = [@manual_slug, "created-section-1"].join("/")
+When(/^I create a section for the manual$/) do
+  @section_title = "Created Section 1"
+  @section_slug = [@manual_slug, "created-section-1"].join("/")
 
-  @document_fields = {
-    section_title: @document_title,
+  @section_fields = {
+    section_title: @section_title,
     section_summary: "Section 1 summary",
     section_body: "Section 1 body",
   }
 
-  create_manual_document(@manual_fields.fetch(:title), @document_fields)
+  create_section(@manual_fields.fetch(:title), @section_fields)
+
+  @section = most_recently_created_manual.sections.to_a.last
+end
+
+When(/^I create an expanded section for the manual$/) do
+  @section_title = "Created Section 1"
+  @section_slug = [@manual_slug, "created-section-1"].join("/")
+
+  @section_fields = {
+    section_title: @section_title,
+    section_summary: "Section 1 summary",
+    section_body: "Section 1 body",
+  }
+
+  create_expanded_section(@manual_fields.fetch(:title), @section_fields)
+
+  @section = most_recently_created_manual.sections.to_a.last
+end
+
+When(/^I create a section for the manual with a change note$/) do
+  @section_title = "Created Section 1"
+  @section_slug = [@manual_slug, "created-section-1"].join("/")
+
+  @change_note = "Adding a brand new exciting section"
+  @section_fields = {
+    section_title: @section_title,
+    section_summary: "Section 1 summary",
+    section_body: "Section 1 body",
+    change_note: @change_note,
+  }
+
+  create_section(@manual_fields.fetch(:title), @section_fields)
+
+  @section = most_recently_created_manual.sections.to_a.last
 end
 
 Then(/^I see the manual has the new section$/) do
   visit manuals_path
   click_on @manual_fields.fetch(:title)
-  expect(page).to have_content(@document_fields.fetch(:section_title))
+  expect(page).to have_content(@section_fields.fetch(:section_title))
 end
 
-Then(/^the manual document and table of contents will have been sent to the draft publishing api$/) do
-  check_manual_document_is_published_to_publishing_api(@document_slug, draft: true)
+Then(/^I see the section isn't visually expanded$/) do
+  click_on @section_fields.fetch(:section_title)
+  expect(@section.visually_expanded).to eq(false)
+end
+
+Then(/^I see the section is visually expanded$/) do
+  click_on @section_fields.fetch(:section_title)
+  expect(@section.visually_expanded).to eq(true)
+end
+
+Then(/^the section and table of contents will have been sent to the draft publishing api$/) do
+  check_section_is_drafted_to_publishing_api(@section.uuid)
   manual_table_of_contents_attributes = {
     details: {
       child_section_groups: [
         {
-          title: "Contents",
+          title: GdsApiConstants::PublishingApi::CHILD_SECTION_GROUP_TITLE,
           child_sections: [
             {
-              title: @document_title,
-              description: @document_fields[:section_summary],
-              base_path: "/#{@document_slug}",
-            }
-          ]
-        }
-      ]
-    }
+              title: @section_title,
+              description: @section_fields[:section_summary],
+              base_path: "/#{@section_slug}",
+            },
+          ],
+        },
+      ],
+    },
   }
-  check_manual_is_published_to_publishing_api(
-    @manual_slug,
+  check_manual_is_drafted_to_publishing_api(
+    @manual.id,
     extra_attributes: manual_table_of_contents_attributes,
-    draft: true
   )
 end
 
-Then(/^the updated manual document at the new slug and updated table of contents will have been sent to the draft publishing api$/) do
-  check_manual_document_is_published_to_publishing_api(@new_slug, draft: true)
+Then(/^the updated section at the new slug and updated table of contents will have been sent to the draft publishing api$/) do
+  check_section_is_drafted_to_publishing_api(@section.uuid)
   manual_table_of_contents_attributes = {
     details: {
       child_section_groups: [
         {
-          title: "Contents",
+          title: GdsApiConstants::PublishingApi::CHILD_SECTION_GROUP_TITLE,
           child_sections: [
             {
               title: @new_title,
-              description: @document_fields[:section_summary],
+              description: @section_fields[:section_summary],
               base_path: "/#{@new_slug}",
-            }
-          ]
-        }
-      ]
-    }
+            },
+          ],
+        },
+      ],
+    },
   }
-  check_manual_is_published_to_publishing_api(
-    @manual_slug,
+  check_manual_is_drafted_to_publishing_api(
+    @manual.id,
     extra_attributes: manual_table_of_contents_attributes,
-    draft: true
   )
 end
 
-Given(/^a draft document exists for the manual$/) do
-  @document_title = "New section"
-  @document_slug = "guidance/example-manual-title/new-section"
+Given(/^a draft section exists for the manual$/) do
+  @section_title = "New section"
+  @section_slug = "guidance/example-manual-title/new-section"
 
-  @document_fields = {
-    section_title: @document_title,
+  @section_fields = {
+    section_title: @section_title,
     section_summary: "New section summary",
     section_body: "New section body",
   }
 
-  create_manual_document(@manual_fields.fetch(:title), @document_fields)
+  create_section(@manual_fields.fetch(:title), @section_fields)
+
+  @section = most_recently_created_manual.sections.to_a.last
+
+  @sections ||= []
+  @sections << @section
+
   WebMock::RequestRegistry.instance.reset!
 end
 
-Given(/^a draft section was created for the manual without the UI$/) do
-  @document_title = "New section"
-  @document_slug = "guidance/example-manual-title/new-section"
-
-  @document_fields = {
-    title: @document_title,
-    summary: "New section summary",
-    body: "New section body",
-  }
-
-  @section = create_manual_document_without_ui(@manual, @document_fields)
-  WebMock::RequestRegistry.instance.reset!
-end
-
-When(/^I edit the document$/) do
+When(/^I edit the section$/) do
   @new_title = "A new section title"
   @new_slug = "#{@manual_slug}/a-new-section-title"
-  edit_manual_document(
+  edit_section(
     @manual_fields.fetch(:title),
-    @document_fields.fetch(:section_title),
+    @section_fields.fetch(:section_title),
     section_title: @new_title,
   )
 end
 
-Then(/^the document should have been updated$/) do
-  check_manual_document_exists_with(
+Then(/^the section should have been updated$/) do
+  check_section_exists_with(
     @manual_fields.fetch(:title),
     section_title: @new_title,
   )
 end
 
-When(/^I visit the specialist documents path for the manual document$/) do
-  link = page.find("a", text: @document_title)
-  document_id = URI.parse(link["href"]).path.split("/").last
-  visit cma_case_path(document_id)
+Then(/^the manual's sections won't have changed$/) do
+  expect(page).to have_content(@section_fields.fetch(:section_title))
 end
 
-Then(/^the document is not found$/) do
-  expect(page).to have_content("Document not found")
+When(/^I create a section with empty fields$/) do
+  create_section(@manual_fields.fetch(:title), {})
 end
 
-Then(/^the manual's documents won't have changed$/) do
-  expect(page).to have_content(@document_fields.fetch(:section_title))
-end
-
-When(/^I create a document with empty fields$/) do
-  create_manual_document(@manual_fields.fetch(:title), {})
-end
-
-Then(/^I see errors for the document fields$/) do
-  %w(Title Summary Body).each do |field|
+Then(/^I see errors for the section fields$/) do
+  %w[Title Summary Body].each do |field|
     expect(page).to have_content("#{field} can't be blank")
   end
   expect(page).not_to have_content("Add attachment")
 end
 
 When(/^I publish the manual$/) do
+  go_to_manual_page(@manual.title) if current_path != manual_path(@manual)
   publish_manual
 end
 
-Then(/^the manual and all its documents are published$/) do
-  @attributes_for_documents.each do |document_attributes|
-    check_manual_and_documents_were_published(
-      @manual_slug,
+When(/^I add another section and publish the manual later$/) do
+  create_section(
+    @manual.title,
+    section_title: "Another section so we can publish",
+    section_summary: "Another section so we can publish summary",
+    section_body: "Another section so we can publish body",
+  )
+  go_to_manual_page(@manual.title)
+  publish_manual
+end
+
+Then(/^the manual and all its sections are published$/) do
+  @sections.each do |section|
+    check_manual_and_sections_were_published(
+      @manual,
+      section,
       @manual_fields,
-      document_attributes[:slug],
-      document_attributes[:fields],
+      section_fields(section),
     )
   end
 end
 
-Then(/^the manual and the edited document are published$/) do
-  check_manual_and_documents_were_published(
-    @manual_slug,
-    @manual_fields,
-    @updated_document[:slug],
-    @updated_document[:fields],
+Then(/^the manual and the edited section are published$/) do
+  check_manual_and_sections_were_published(
+    @manual, @updated_section, @manual_fields, @updated_fields
   )
 end
 
-Then(/^the updated manual document is available to preview$/) do
-  check_manual_document_is_published_to_publishing_api(@updated_document[:slug], draft: true)
-  updated_documents = [@updated_document] + @attributes_for_documents[1..-1]
+Then(/^the updated section is available to preview$/) do
+  check_section_is_drafted_to_publishing_api(@updated_section.uuid)
+  sections = @sections.map do |section|
+    {
+      title: section == @updated_section ? @updated_fields[:section_title] : section.title,
+      description: section == @updated_section ? @updated_fields[:section_summary] : section.summary,
+      base_path: "/#{section.slug}",
+    }
+  end
   manual_table_of_contents_attributes = {
     details: {
       child_section_groups: [
         {
-          title: "Contents",
-          child_sections: updated_documents.map do |updated_document|
-            {
-              title: updated_document[:fields][:section_title],
-              description: updated_document[:fields][:section_summary],
-              base_path: "/#{updated_document[:slug]}",
-            }
-          end
-        }
-      ]
-    }
+          title: GdsApiConstants::PublishingApi::CHILD_SECTION_GROUP_TITLE,
+          child_sections: sections,
+        },
+      ],
+    },
   }
-  check_manual_is_published_to_publishing_api(
-    @manual_slug,
+  check_manual_is_drafted_to_publishing_api(
+    @manual.id,
     extra_attributes: manual_table_of_contents_attributes,
-    draft: true
   )
 end
 
-Then(/^the manual and its new document are published$/) do
-  check_manual_and_documents_were_published(
-    @manual_slug,
+Then(/^the sections that I didn't edit were not republished$/) do
+  @sections.reject { |s| s.uuid == @updated_section.uuid }.each do |section|
+    check_section_was_not_published(section)
+  end
+end
+
+Then(/^the manual and its new section are published$/) do
+  check_manual_and_sections_were_published(
+    @manual,
+    @new_section,
     @manual_fields,
-    @new_document[:slug],
-    @new_document[:fields],
+    section_fields(@new_section),
   )
 end
 
@@ -322,69 +358,124 @@ Given(/^a published manual exists$/) do
 
   create_manual(@manual_fields)
 
-  @attributes_for_documents = create_documents_for_manual(
+  create_sections_for_manual(
     manual_fields: @manual_fields,
     count: 2,
   )
 
+  @manual = most_recently_created_manual
+  @sections = @manual.sections.to_a
+
   publish_manual
 
-  # Clear out any remote requests caught by webmock.
-  # We don't want the remote calls that were made during the publishing setup
-  # to interfere with later webmock assertions.
-  reset_remote_requests
+  WebMock::RequestRegistry.instance.reset!
 end
 
-When(/^I edit one of the manual's documents$/) do
-  document_to_edit = @attributes_for_documents.first
+Given(/^a published manual with some sections was created without the UI$/) do
+  @manual_title = "Example Manual Title"
+  @manual_slug = "guidance/example-manual-title"
 
-  @updated_document = {
-    slug: document_to_edit[:slug],
-    fields: {
-      section_title: document_to_edit[:fields][:section_title],
-      section_summary: "Updated section",
-      section_body: "Updated section",
-      change_note: "Updated section",
-    }
+  @manual_fields = { title: @manual_title,
+                     summary: "Nullam quis risus eget urna mollis ornare vel eu leo." }
+
+  @manual = create_manual_without_ui(@manual_fields, organisation_slug: GDS::SSO.test_user.organisation_slug)
+
+  sec1 = create_section_without_ui(
+    @manual,
+    {
+      title: "1st example section",
+      summary: "1st example section summary",
+      body: "1st example section body",
+    },
+    organisation_slug: GDS::SSO.test_user.organisation_slug,
+  )
+  sec2 = create_section_without_ui(
+    @manual,
+    {
+      title: "2nd example section",
+      summary: "2nd example section summary",
+      body: "2nd example section body",
+    },
+    organisation_slug: GDS::SSO.test_user.organisation_slug,
+  )
+  @sections = [sec1, sec2]
+
+  publish_manual_without_ui(@manual)
+
+  WebMock::RequestRegistry.instance.reset!
+end
+
+When(/^I create a section for the manual as a minor change without the UI$/) do
+  @section_title = "Created Section 1"
+  @section_slug = [@manual_slug, "created-section-1"].join("/")
+
+  @section_fields = {
+    title: @section_title,
+    summary: "Section 1 summary",
+    body: "Section 1 body",
+    minor_update: true,
   }
 
-  edit_manual_document(@manual_title, document_to_edit[:title], @updated_document[:fields])
+  @section = create_section_without_ui(@manual, @section_fields, organisation_slug: GDS::SSO.test_user.organisation_slug)
+
+  go_to_manual_page(@manual.title)
+
+  WebMock::RequestRegistry.instance.reset!
 end
 
-When(/^I edit one of the manual's documents without a change note$/) do
-  document_to_edit = @attributes_for_documents.first
+When(/^I edit one of the manual's sections(?: as a major change)?$/) do
+  WebMock::RequestRegistry.instance.reset!
+  @updated_section = @sections.first
 
-  @updated_document = document_to_edit.merge(
-    fields: {
-      section_title: document_to_edit[:fields][:section_title],
-      section_summary: "Updated section",
-      section_body: "Updated section",
-      change_note: "",
-    }
-  )
-
-  edit_manual_document(@manual_title, document_to_edit[:title], @updated_document[:fields])
-end
-
-When(/^I start creating a new manual document$/) do
-  @document_fields = {
-    section_title: "Section 1",
-    section_summary: "Section 1 summary",
-    section_body: "Section 1 body",
+  @updated_fields = {
+    section_title: @updated_section.title,
+    section_summary: "Updated section",
+    section_body: "Updated section",
+    change_note: "Updated section",
   }
 
-  create_manual_document_for_preview(
-    @document_fields.fetch(:title),
-    @document_fields,
-  )
+  edit_section(@manual_title || @manual.title, @updated_section.title, @updated_fields) do
+    choose("Major update")
+  end
 end
 
-When(/^I preview the document$/) do
-  generate_preview
+When(/^I edit one of the manual's sections without a change note$/) do
+  WebMock::RequestRegistry.instance.reset!
+  @updated_section = @sections.first
+
+  @updated_fields = {
+    section_title: @updated_section.title,
+    section_summary: "Updated section",
+    section_body: "Updated section",
+    change_note: "",
+  }
+
+  edit_section(@manual_title || @manual.title, @updated_section.title, @updated_fields) do
+    choose("Major update")
+  end
 end
 
-When(/^I create a document to preview$/) do
-  @document_fields = {
+When(/^I edit one of the manual's sections as a minor change$/) do
+  WebMock::RequestRegistry.instance.reset!
+  @updated_section = @sections.first
+
+  @updated_fields = {
+    section_title: @updated_section.title,
+    section_summary: "Updated section",
+    section_body: "Updated section",
+  }
+
+  edit_section(@manual_title || @manual.title, @updated_section.title, @updated_fields) do
+    choose("Minor update")
+  end
+end
+
+When(/^I preview the section$/) do
+  click_button("Preview")
+end
+
+When(/^I create a section to preview$/) do
+  @section_fields = {
     section_title: "Section 1",
     section_summary: "Section 1 summary",
     section_body: "Section 1 body",
@@ -392,36 +483,15 @@ When(/^I create a document to preview$/) do
 
   go_to_manual_page(@manual_fields[:title])
   click_on "Add section"
-  fill_in_fields(@document_fields)
+  fill_in_fields(@section_fields)
 end
 
-Then(/^I see the document body preview$/) do
+Then(/^I see the section body preview$/) do
   check_for_document_body_preview("Section 1 body")
 end
 
-When(/^I copy\+paste the embed code into the body of the document$/) do
-  copy_embed_code_for_attachment_and_paste_into_manual_document_body("My attachment")
-end
-
-When(/^I create a new draft of a section with a change note$/) do
-  document = @attributes_for_documents.first
-
-  click_on(document[:title])
-  click_on("Edit section")
-
-  @change_note = "Changed title for the purposes of testing."
-
-  fields = {
-    section_title: "This document has changed for the purposes of testing",
-    change_note: @change_note,
-  }
-
-  save_document
-  edit_manual_document(@manual_title, document[:title], fields)
-end
-
-When(/^I re\-publish the section$/) do
-  publish_manual
+When(/^I copy\+paste the embed code into the body of the section$/) do
+  copy_embed_code_for_attachment_and_paste_into_section_body("My attachment")
 end
 
 Then(/^I see an error requesting that I provide a change note$/) do
@@ -429,40 +499,107 @@ Then(/^I see an error requesting that I provide a change note$/) do
 end
 
 When(/^I indicate that the change is minor$/) do
-  check("Minor update")
-  save_document
+  choose("Minor update")
+  click_on "Save as draft"
 end
 
-Then(/^the document is updated without a change note$/) do
-  check_manual_document_exists_with(
+Then(/^the section is updated without a change note$/) do
+  check_section_exists_with(
     @manual_title,
-    section_title: @updated_document[:title],
-    section_summary: @updated_document[:fields].fetch(:section_summary),
+    section_title: @updated_section.title,
+    section_summary: @updated_fields[:section_summary],
   )
+end
+
+Then(/^the manual is published as a major update including a change note draft$/) do
+  # We don't use the update_type on the publish API, we fallback to what we set
+  # when drafting the content
+  check_manual_is_drafted_to_publishing_api(@manual.id, extra_attributes: { update_type: GdsApiConstants::PublishingApi::MAJOR_UPDATE_TYPE }, number_of_drafts: 2)
+end
+
+Then(/^the manual is published as a minor update including a change note draft$/) do
+  # We don't use the update_type on the publish API, we fallback to what we set
+  # when drafting the content
+  check_manual_is_drafted_to_publishing_api(@manual.id, extra_attributes: { update_type: GdsApiConstants::PublishingApi::MINOR_UPDATE_TYPE }, number_of_drafts: 2)
+end
+
+Then(/^the manual is published as a major update$/) do
+  # We don't use the update_type on the publish API, we fallback to what we set
+  # when drafting the content
+  check_manual_is_drafted_to_publishing_api(@manual.id, extra_attributes: { update_type: GdsApiConstants::PublishingApi::MAJOR_UPDATE_TYPE }, number_of_drafts: 1)
+end
+
+Then(/^the section is published as a major update including a change note draft$/) do
+  # We don't use the update_type on the publish API, we fallback to what we set
+  # when drafting the content
+  check_section_is_drafted_to_publishing_api((@updated_section || @section).uuid, extra_attributes: { update_type: GdsApiConstants::PublishingApi::MAJOR_UPDATE_TYPE }, number_of_drafts: 2)
+end
+
+Then(/^the section is published as a major update$/) do
+  # We don't use the update_type on the publish API, we fallback to what we set
+  # when drafting the content
+  check_section_is_drafted_to_publishing_api((@updated_section || @section).uuid, extra_attributes: { update_type: GdsApiConstants::PublishingApi::MAJOR_UPDATE_TYPE }, number_of_drafts: 1)
+end
+
+Then(/^the section is published as a minor update including a change note draft$/) do
+  # We don't use the update_type on the publish API, we fallback to what we set
+  # when drafting the content
+  check_section_is_drafted_to_publishing_api((@updated_section || @section).uuid, extra_attributes: { update_type: GdsApiConstants::PublishingApi::MINOR_UPDATE_TYPE }, number_of_drafts: 2)
+end
+
+Then(/^I can see the change note and update type form when editing existing sections$/) do
+  @sections.each do |section|
+    go_to_manual_page(@manual.title)
+    click_on section.title
+    click_on "Edit section"
+
+    check_that_change_note_fields_are_present
+  end
+end
+
+Then(/^I can see the change note form when adding a new section$/) do
+  go_to_manual_page(@manual.title)
+  click_on "Add section"
+
+  check_that_change_note_fields_are_present(note_field_only: true, note: "New section added.")
+end
+
+Then(/^the change note form for the section is clear$/) do
+  go_to_manual_page(@manual.title)
+  click_on((@updated_section || @section).title)
+  click_on "Edit section"
+
+  check_that_change_note_fields_are_present(minor_update: false, note: "")
+end
+
+Then(/^the change note form for the section contains my note$/) do
+  go_to_manual_page(@manual.title)
+  click_on((@updated_section || @section).title)
+  click_on "Edit section"
+
+  check_that_change_note_fields_are_present(note_field_only: true, note: @change_note)
 end
 
 When(/^I add another section to the manual$/) do
   title = "Section 2"
 
-  @new_document = {
-    title: title,
-    slug: [@manual_slug, title.parameterize].join("/"),
-    fields: {
-      section_title: title,
-      section_summary: "#{title} summary",
-      section_body: "#{title} body",
-    }
+  fields = {
+    section_title: title,
+    section_summary: "#{title} summary",
+    section_body: "#{title} body",
   }
 
-  create_manual_document(@manual_title, @new_document[:fields])
+  create_section(@manual_title, fields)
+
+  @new_section = most_recently_created_manual.sections.to_a.last
 end
 
-Then(/^I see no visible change note in the manual document edit form$/) do
-  document = @attributes_for_documents.first
-  check_change_note_value(@manual_title, document[:title], "")
+Then(/^I see no visible change note in the section edit form$/) do
+  section = @sections.first
+  check_change_note_value(@manual_title, section.title, "")
 end
 
-When(/^I add invalid HTML to the document body$/) do
+When(/^I add invalid HTML to the section body$/) do
   fill_in :body, with: "<script>alert('naughty naughty');</script>"
 end
 
@@ -471,37 +608,36 @@ When(/^I create another manual with the same slug$/) do
 end
 
 When(/^I create a section with duplicate title$/) do
-  create_manual_document(@manual_fields.fetch(:title), @document_fields)
+  create_section(@manual_fields.fetch(:title), @section_fields)
 end
 
-Then(/^the manual and its documents have failed to publish$/) do
+Then(/^the manual and its sections have failed to publish$/) do
   expect(page).to have_content("This manual was sent for publishing")
   expect(page).to have_content("something went wrong. Our team has been notified.")
 end
 
-Then(/^the manual and its documents are queued for publishing$/) do
+Then(/^the manual and its sections are queued for publishing$/) do
   expect(page).to have_content("This manual was sent for publishing")
   expect(page).to have_content("It should be published shortly.")
 end
 
 Given(/^a recoverable error occurs$/) do
-  mock_rummager_http_server_error
+  stub_http_server_error
 end
 
 Given(/^an unrecoverable error occurs$/) do
-  mock_rummager_http_client_error
+  stub_http_error_response
 end
 
 Given(/^a version mismatch occurs$/) do
-  PublishManualService.any_instance.stub(:versions_match?).and_return(false)
+  Manual::PublishService.any_instance.stub(:call)
+    .and_raise(Manual::PublishService::VersionMismatchError.new)
 end
 
 When(/^I publish the manual expecting a recoverable error$/) do
-  begin
-    publish_manual
-  rescue PublishManualWorker::FailedToPublishError => e
-    @error = e
-  end
+  publish_manual
+rescue PublishManualWorker::FailedToPublishError => e
+  @error = e
 end
 
 Then(/^the publication reattempted$/) do
@@ -516,7 +652,7 @@ When(/^I make changes and preview the manual$/) do
     title: "Title for preview",
     body: "Body for preview",
   )
-  generate_preview
+  click_button("Preview")
 end
 
 When(/^I start creating a new manual$/) do
@@ -532,7 +668,7 @@ When(/^I start creating a new manual$/) do
 end
 
 When(/^I preview the manual$/) do
-  generate_preview
+  click_button("Preview")
 end
 
 Then(/^I see the manual body preview$/) do
@@ -552,14 +688,11 @@ Then(/^I see a warning about section slug clash at publication$/) do
 end
 
 When(/^a DevOps specialist withdraws the manual for me$/) do
-  manual_repository = SpecialistPublisherWiring.get(:repository_registry).manual_repository
-  manual = manual_repository.all.find { |manual| manual.slug == @manual_slug }
-
-  withdraw_manual_without_ui(manual)
+  withdraw_manual_without_ui(@manual)
 end
 
 Then(/^the manual should be withdrawn$/) do
-  check_manual_is_withdrawn(@manual_title, @manual_slug, @attributes_for_documents)
+  check_manual_is_withdrawn(@manual, @sections)
 end
 
 Then(/^the manual should belong to "(.*?)"$/) do |organisation_slug|
@@ -570,19 +703,19 @@ Then(/^the manual should still belong to "(.*?)"$/) do |organisation_slug|
   check_manual_has_organisation_slug(@manual_fields.merge(title: @new_title), organisation_slug)
 end
 
-When(/^I reorder the documents$/) do
+When(/^I reorder the sections$/) do
   click_on("Reorder sections")
   elems = page.all(".reorderable-document-list li.ui-sortable-handle")
   elems[0].drag_to(elems[1])
   click_on("Save section order")
-  @reordered_document_attributes = [
-    @attributes_for_documents[1],
-    @attributes_for_documents[0]
+  @reordered_section_attributes = [
+    @attributes_for_sections[1],
+    @attributes_for_sections[0],
   ]
 end
 
-Then(/^the order of the documents in the manual should have been updated$/) do
-  @reordered_document_attributes.map { |doc| doc[:title] }.each.with_index do |title, index|
+Then(/^the order of the sections in the manual should have been updated$/) do
+  @reordered_section_attributes.map { |sec| sec[:title] }.each.with_index do |title, index|
     expect(page).to have_css(".document-list li.document:nth-child(#{index + 1}) .document-title", text: title)
   end
 end
@@ -592,21 +725,30 @@ Then(/^the new order should be visible in the preview environment$/) do
     details: {
       child_section_groups: [
         {
-          title: "Contents",
-          child_sections: @reordered_document_attributes.map do |doc|
+          title: GdsApiConstants::PublishingApi::CHILD_SECTION_GROUP_TITLE,
+          child_sections: @reordered_section_attributes.map do |sec|
             {
-              title: doc[:fields][:section_title],
-              description: doc[:fields][:section_summary],
-              base_path: "/#{doc[:slug]}",
+              title: sec[:fields][:section_title],
+              description: sec[:fields][:section_summary],
+              base_path: "/#{sec[:slug]}",
             }
-          end
-        }
-      ]
-    }
+          end,
+        },
+      ],
+    },
   }
-  check_manual_is_published_to_publishing_api(
-    @manual_slug,
+  check_manual_is_drafted_to_publishing_api(
+    @manual.id,
     extra_attributes: manual_table_of_contents_attributes,
-    draft: true
   )
+end
+
+Then(/^the manual is listed as (draft|published|published with new draft)$/) do |status|
+  visit manuals_path
+
+  expect(page).to have_selector(:xpath, "//li[a[.='#{@manual.title}']]//span[contains(concat(' ', normalize-space(@class), ' '), ' label ')][.='#{status}']")
+
+  click_on @manual.title
+
+  expect(page).to have_selector(:xpath, "//dt[.='State']/following-sibling::dd[.='#{status}']")
 end

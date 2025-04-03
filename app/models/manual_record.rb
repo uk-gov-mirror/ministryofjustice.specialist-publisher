@@ -6,20 +6,17 @@ class ManualRecord
   field :organisation_slug, type: String
   field :slug, type: String
 
-  embeds_many :editions,
-    class_name: "ManualRecord::Edition",
-    cascade_callbacks: true
+  has_many :editions,
+           class_name: "ManualRecord::Edition",
+           dependent: :destroy,
+           autosave: true
 
   def self.find_by(attributes)
-    first(conditions: attributes)
-  end
-
-  def self.find_by_organisation(organisation_slug)
-    where(organisation_slug: organisation_slug)
+    where(attributes).first
   end
 
   def self.all_by_updated_at
-    order_by([:updated_at, :desc])
+    order_by(%i[updated_at desc])
   end
 
   def new_or_existing_draft_edition
@@ -31,12 +28,34 @@ class ManualRecord
   end
 
   def latest_edition
-    editions.order_by([:version_number, :desc]).first
+    # NOTE - we cache this because .order_by is a mongoid method that will hit
+    # the server each time, also because it's a server command it doesn't look
+    # at unsaved instances in the array (such as those created in
+    # build_draft_edition below)
+    @latest_edition ||= editions.order_by(%i[version_number desc]).first
   end
 
+  def previous_edition
+    editions.order_by(%i[version_number desc]).limit(2).last
+  end
+
+  def has_ever_been_published?
+    editions.any? { |x| x.state == "published" }
+  end
+
+  after_save :save_and_clear_latest_edition
+
 private
+
+  def save_and_clear_latest_edition
+    if @latest_edition.present?
+      @latest_edition.save! if @latest_edition.changed?
+      @latest_edition = nil
+    end
+  end
+
   def build_draft_edition
-    editions.build(state: "draft", version_number: next_version_number)
+    @latest_edition = editions.build(state: "draft", version_number: next_version_number)
   end
 
   def next_version_number
@@ -56,12 +75,24 @@ private
     field :body, type: String
     field :state, type: String
     field :version_number, type: Integer
-    field :document_ids, type: Array
-    field :removed_document_ids, type: Array
-    field :tags, type: Array
+    field :section_uuids, type: Array
+    field :removed_section_uuids, type: Array
+    field :originally_published_at, type: Time
+    field :use_originally_published_at_for_public_timestamp, type: Boolean
 
-    # We don't make use of the relationship but Mongiod can't save the
+    index manual_record_id: 1
+
+    # We don't make use of the relationship but Mongoid can't save the
     # timestamps properly without it.
-    embedded_in "ManualRecord"
+    belongs_to :manual_record
+
+    after_save :touch_manual_record
+    before_destroy :touch_manual_record
+
+    def touch_manual_record
+      # Apparently touch is a Mongoid 3 thing, so we use the callback code
+      # from Mongoid::Timestamps::Updated
+      manual_record.set_updated_at if manual_record.able_to_set_updated_at?
+    end
   end
 end
